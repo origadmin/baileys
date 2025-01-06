@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/LinkinStars/baileys/internal/parsing"
+	"github.com/LinkinStars/baileys/internal/util"
 )
 
 var (
@@ -44,6 +45,7 @@ type PBFlat struct {
 type PBField struct {
 	Type    string
 	Name    string
+	Tag     string
 	Comment string
 	Index   int
 }
@@ -52,6 +54,9 @@ type PBField struct {
 func GoStruct2PB(structList []*parsing.StructFlat) (pbList []*PBFlat) {
 	pbList = make([]*PBFlat, 0)
 	for _, s := range structList {
+		if s.IsPlural {
+			continue
+		}
 		pbFlat := &PBFlat{
 			Name:        s.Name,
 			Comment:     s.Comment,
@@ -59,8 +64,9 @@ func GoStruct2PB(structList []*parsing.StructFlat) (pbList []*PBFlat) {
 		}
 		for idx, field := range s.Fields {
 			pbField := &PBField{
-				Name:    field.Name,
+				Name:    util.ToLowerSnakeCase(field.Name),
 				Type:    GoType2PB(field.Type),
+				Tag:     trimTagOmit(field.GetJsonTag()),
 				Comment: field.Comment,
 				Index:   idx + 1,
 			}
@@ -113,4 +119,11 @@ func GoType2PB(goType string) (pbType string) {
 	}
 	// 其他情况可能为嵌套结构，直接返回原类型
 	return goType
+}
+
+func trimTagOmit(tag string) string {
+	if strings.HasSuffix(tag, ",omitempty") {
+		return strings.TrimSuffix(tag, ",omitempty")
+	}
+	return tag
 }

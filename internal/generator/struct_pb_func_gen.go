@@ -11,63 +11,83 @@ import (
 
 const (
 	struct2PBFuncTpl = `
+
+{{- if .IsPlural -}}
 	type (
-		{{.Name}} = baileys.{{.Name}}
-		{{.Name}}PB = baileys.{{.Name}}PB
+		{{.PluralName}} = []*ent.{{.Name}}
+		{{.PluralName}}PB = []*pb.{{.Name}}
 	)
+	{{if and (ne .Comment "")}}// Convert{{.PluralName}}2PB {{ .Comment}}
+	{{end -}}func Convert{{.PluralName}}2PB(gosModel {{.PluralName}}) (pbsModel {{.PluralName}}PB) {
+		for _, model := range gosModel {
+			pbsModel = append(pbsModel, Convert{{.Name}}2PB(model))
+		}
+		return pbsModel
+	}
+{{- else}}
+	type (
+		{{.Name}} = ent.{{.Name}}
+		{{.Name}}PB = pb.{{.Name}}
+	)
+
 	{{if and (ne .Comment "")}}// Convert{{.Name}}2PB {{ .Comment}}
-	{{end -}}func Convert{{.Name}}2PB(goModel *{{.Name}}) (pbModel {{.Name}}PB) { 
-    pbModel = &{{.Name}}PB{} {{range .Fields}}
+	{{end -}}func Convert{{.Name}}2PB(goModel *{{.Name}}) (pbModel *{{.Name}}PB) {
+    pbModel = &{{.Name}}PB{} 
+	if goModel == nil {
+		return pbModel
+	}
+	{{range .Fields}}
     {{if eq .Type "bool" -}}
-    pbModel.{{.Name}} = goModel.{{.Name}}
+    pbModel.{{.NamePB}} = goModel.{{.Name}}
     {{- else if eq .Type "int" -}}
-    pbModel.{{.Name}} = int32(goModel.{{.Name}})
+    pbModel.{{.NamePB}} = int32(goModel.{{.Name}})
     {{- else if eq .Type "int8" -}}
-    pbModel.{{.Name}} = int32(goModel.{{.Name}})
+    pbModel.{{.NamePB}} = int32(goModel.{{.Name}})
     {{- else if eq .Type "int16" -}}
-    pbModel.{{.Name}} = int32(goModel.{{.Name}})
+    pbModel.{{.NamePB}} = int32(goModel.{{.Name}})
     {{- else if eq .Type "int32" -}}
-    pbModel.{{.Name}} = int32(goModel.{{.Name}})
+    pbModel.{{.NamePB}} = int32(goModel.{{.Name}})
     {{- else if eq .Type "int64" -}}
-    pbModel.{{.Name}} = int64(goModel.{{.Name}})
+    pbModel.{{.NamePB}} = int64(goModel.{{.Name}})
     {{- else if eq .Type "uint" -}}
-    pbModel.{{.Name}} = int32(goModel.{{.Name}})
+    pbModel.{{.NamePB}} = int32(goModel.{{.Name}})
     {{- else if eq .Type "uint8" -}}
-    pbModel.{{.Name}} = int32(goModel.{{.Name}})
+    pbModel.{{.NamePB}} = int32(goModel.{{.Name}})
     {{- else if eq .Type "uint16" -}}
-    pbModel.{{.Name}} = int32(goModel.{{.Name}})
+    pbModel.{{.NamePB}} = int32(goModel.{{.Name}})
     {{- else if eq .Type "uint32" -}}
-    pbModel.{{.Name}} = int32(goModel.{{.Name}})
+    pbModel.{{.NamePB}} = int32(goModel.{{.Name}})
     {{- else if eq .Type "uint64" -}}
-    pbModel.{{.Name}} = int64(goModel.{{.Name}})
+    pbModel.{{.NamePB}} = int64(goModel.{{.Name}})
     {{- else if eq .Type "uintptr" -}}
-    pbModel.{{.Name}} = goModel.{{.Name}}
+    pbModel.{{.NamePB}} = goModel.{{.Name}}
     {{- else if eq .Type "float32" -}}
-    pbModel.{{.Name}} = goModel.{{.Name}}
+    pbModel.{{.NamePB}} = goModel.{{.Name}}
     {{- else if eq .Type "float64" -}}
-    pbModel.{{.Name}} = goModel.{{.Name}}
+    pbModel.{{.NamePB}} = goModel.{{.Name}}
     {{- else if eq .Type "complex64" -}}
-    pbModel.{{.Name}} = goModel.{{.Name}}
+    pbModel.{{.NamePB}} = goModel.{{.Name}}
     {{- else if eq .Type "complex128" -}}
-    pbModel.{{.Name}} = goModel.{{.Name}}
+    pbModel.{{.NamePB}} = goModel.{{.Name}}
     {{- else if eq .Type "interface{}" -}}
-    pbModel.{{.Name}} = goModel.{{.Name}}
+    pbModel.{{.NamePB}} = goModel.{{.Name}}
     {{- else if eq .Type "map[string]string" -}}
-    pbModel.{{.Name}} = goModel.{{.Name}}
+    pbModel.{{.NamePB}} = goModel.{{.Name}}
     {{- else if eq .Type "string" -}}
-    pbModel.{{.Name}} = goModel.{{.Name}}
+    pbModel.{{.NamePB}} = goModel.{{.Name}}
     {{- else if eq .Type "[]string" -}}
-    pbModel.{{.Name}} = goModel.{{.Name}}
+    pbModel.{{.NamePB}} = goModel.{{.Name}}
     {{- else if eq .Type "struct{}" -}}
-    pbModel.{{.Name}} = goModel.{{.Name}}
+    pbModel.{{.NamePB}} = goModel.{{.Name}}
     {{- else if eq .Type "time.Time" -}}
-    pbModel.{{.Name}} = timestamppb.New(goModel.{{.Name}})
+    pbModel.{{.NamePB}} = timestamppb.New(goModel.{{.Name}})
     {{- else -}}
-    pbModel.{{.Name}} = goModel.{{.Name}}
+    pbModel.{{.NamePB}} = Convert{{.ConvertName}}2PB(goModel.{{.Name}})
     {{- end}}
-{{- end}}
+	{{- end}}
     return pbModel
 }
+{{- end}}
 `
 )
 

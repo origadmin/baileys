@@ -19,17 +19,21 @@ const (
 
 // StructFlat 非嵌套结构体
 type StructFlat struct {
-	Name    string
-	Comment string
-	Fields  []*StructField
+	Name       string
+	Comment    string
+	IsPlural   bool
+	PluralName string
+	Fields     []*StructField
 }
 
 // StructField 结构体字段
 type StructField struct {
-	Name    string
-	Type    string
-	Comment string
-	Tag     string
+	Name        string
+	ConvertName string
+	NamePB      string
+	Type        string
+	Comment     string
+	Tag         string
 }
 
 // GetTag 获取tag
@@ -95,7 +99,7 @@ func StructParser(src string) (structList []*StructFlat, err error) {
 							if reField.Tag != nil {
 								structField.Tag = strings.Trim(reField.Tag.Value, "`")
 							}
-							switch reField.Type.(type) {
+							switch v := reField.Type.(type) {
 							case *ast.Ident:
 								iDent := reField.Type.(*ast.Ident)
 								structField.Type = iDent.Name
@@ -110,20 +114,39 @@ func StructParser(src string) (structList []*StructFlat, err error) {
 								structField.Type = fmt.Sprintf("[]%s", iDentElem)
 							case *ast.StructType:
 								structField.Type = StructTypeDef
+							case *ast.StarExpr:
+								structField.Type = "*" + fmt.Sprintf("%+v", v.X)
 							case *ast.SelectorExpr:
 								iDent := reField.Type.(*ast.SelectorExpr)
 								if iDent.Sel.Name == "Time" {
 									structField.Type = TimeTypeDef
 								} else {
-									log.Printf("undefined reField type %+v", reField.Type)
+									log.Printf("undefined reField names %+v, type %+v", reField.Names, reField.Type)
 								}
 							default:
 								log.Printf("undefined reField type %+v", reField.Type)
 							}
-
+							var plural bool
 							for _, name := range reField.Names {
+								if !name.IsExported() {
+									continue
+								}
+								structField.NamePB = util.ToUpperCamelCase(name.Name)
 								structField.Name = name.Name
-								structField.Comment = strings.TrimSpace(reField.Doc.Text())
+								structField.Comment = fixMultiLineComment(strings.TrimSpace(reField.Doc.Text()))
+								structField.Type, plural = util.ArrayToPlural(structField.Type)
+								structField.ConvertName = structField.Type
+								if structField.ConvertName == "" {
+									structField.ConvertName = name.Name
+								}
+								if plural {
+									structList = append(structList, &StructFlat{
+										IsPlural:   true,
+										PluralName: util.ToPlural(structField.ConvertName),
+										Name:       structField.ConvertName,
+										Comment:    structField.Comment,
+									})
+								}
 								structFlat.Fields = append(structFlat.Fields, structField)
 								log.Printf("name=%s type=%s comment=%s tag=%s\n", name.Name, structField.Type, structField.Comment, structField.Tag)
 							}
@@ -142,4 +165,8 @@ func addPackageIfNotExist(src string) string {
 		return src
 	}
 	return "package mypackage\n" + src
+}
+
+func fixMultiLineComment(comment string) string {
+	return strings.ReplaceAll(comment, "\n", "\n\t// ")
 }
