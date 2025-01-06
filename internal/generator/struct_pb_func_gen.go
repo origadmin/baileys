@@ -24,6 +24,15 @@ const (
 		}
 		return pbsModel
 	}
+
+	{{if and (ne .Comment "")}}// Convert{{.PluralName}}PB2Object {{ .Comment}}
+	{{end -}}func Convert{{.PluralName}}PB2Object(pbsModel {{.PluralName}}) (gosModel {{.PluralName}}) {
+		for _, model := range pbsModel {
+			gosModel = append(gosModel, Convert{{.Name}}2PB(model))
+		}
+		return gosModel
+	}
+
 {{- else}}
 	type (
 		{{.Name}} = ent.{{.Name}}
@@ -87,6 +96,65 @@ const (
 	{{- end}}
     return pbModel
 }
+
+	{{if and (ne .Comment "")}}// Convert{{.Name}}PB2Object {{ .Comment}}
+	{{end -}}func Convert{{.Name}}PB2Object(pbModel *{{.Name}}PB) (goModel *{{.Name}}) {
+    goModel = &{{.Name}}{}
+	if pbModel == nil {
+		return goModel
+	}
+	{{range .Fields}}
+    {{if eq .Type "bool" -}}
+    goModel.{{.Name}} = pbModel.{{.NamePB}}
+    {{- else if eq .Type "int" -}}
+    goModel.{{.Name}} = int32(pbModel.{{.NamePB}})
+    {{- else if eq .Type "int8" -}}
+    goModel.{{.Name}} = int32(pbModel.{{.NamePB}})
+    {{- else if eq .Type "int16" -}}
+    goModel.{{.Name}} = int32(pbModel.{{.NamePB}})
+    {{- else if eq .Type "int32" -}}
+    goModel.{{.Name}} = int32(pbModel.{{.NamePB}})
+    {{- else if eq .Type "int64" -}}
+    goModel.{{.Name}} = int64(pbModel.{{.NamePB}})
+    {{- else if eq .Type "uint" -}}
+    goModel.{{.Name}} = int32(pbModel.{{.NamePB}})
+    {{- else if eq .Type "uint8" -}}
+    goModel.{{.Name}} = int32(pbModel.{{.NamePB}})
+    {{- else if eq .Type "uint16" -}}
+    goModel.{{.Name}} = int32(pbModel.{{.NamePB}})
+    {{- else if eq .Type "uint32" -}}
+    goModel.{{.Name}} = int32(pbModel.{{.NamePB}})
+    {{- else if eq .Type "uint64" -}}
+    goModel.{{.Name}} = int64(pbModel.{{.NamePB}})
+    {{- else if eq .Type "uintptr" -}}
+    goModel.{{.Name}} = pbModel.{{.NamePB}}
+    {{- else if eq .Type "float32" -}}
+    goModel.{{.Name}} = pbModel.{{.NamePB}}
+    {{- else if eq .Type "float64" -}}
+    goModel.{{.Name}} = pbModel.{{.NamePB}}
+    {{- else if eq .Type "complex64" -}}
+    goModel.{{.Name}} = pbModel.{{.NamePB}}
+    {{- else if eq .Type "complex128" -}}
+    goModel.{{.Name}} = pbModel.{{.NamePB}}
+    {{- else if eq .Type "interface{}" -}}
+    goModel.{{.Name}} = pbModel.{{.NamePB}}
+    {{- else if eq .Type "map[string]string" -}}
+    goModel.{{.Name}} = pbModel.{{.NamePB}}
+    {{- else if eq .Type "string" -}}
+    goModel.{{.Name}} = pbModel.{{.NamePB}}
+    {{- else if eq .Type "[]string" -}}
+    goModel.{{.Name}} = pbModel.{{.NamePB}}
+    {{- else if eq .Type "struct{}" -}}
+    goModel.{{.Name}} = pbModel.{{.NamePB}}
+    {{- else if eq .Type "time.Time" -}}
+    goModel.{{.Name}} = pbModel.{{.NamePB}}.AsTime()
+    {{- else -}}
+    goModel.{{.Name}} = Convert{{.ConvertName}}PB2Object(pbModel.{{.NamePB}})
+    {{- end}}
+	{{- end}}
+    return goModel
+	}
+
 {{- end}}
 `
 )
