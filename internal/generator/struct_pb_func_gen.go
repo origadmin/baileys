@@ -26,9 +26,9 @@ const (
 	}
 
 	{{if and (ne .Comment "")}}// Convert{{.PluralName}}PB2Object {{ .Comment}}
-	{{end -}}func Convert{{.PluralName}}PB2Object(pbsModel {{.PluralName}}) (gosModel {{.PluralName}}) {
+	{{end -}}func Convert{{.PluralName}}PB2Object(pbsModel {{.PluralName}}PB) (gosModel {{.PluralName}}) {
 		for _, model := range pbsModel {
-			gosModel = append(gosModel, Convert{{.Name}}2PB(model))
+			gosModel = append(gosModel, Convert{{.Name}}PB2Object(model))
 		}
 		return gosModel
 	}
