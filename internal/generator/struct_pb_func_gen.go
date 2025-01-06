@@ -11,10 +11,12 @@ import (
 
 const (
 	struct2PBFuncTpl = `
-	const {{.Name}} = baileys.{{.Name}}
-	const {{.Name}}PB = baileys.{{.Name}}PB
-{{if and (ne .Comment "")}}// Convert{{.Name}}2PB {{ .Comment}}
-{{end -}}func Convert{{.Name}}2PB(goModel *{{.Name}}) (pbModel {{.Name}}PB) { 
+	type (
+		{{.Name}} = baileys.{{.Name}}
+		{{.Name}}PB = baileys.{{.Name}}PB
+	)
+	{{if and (ne .Comment "")}}// Convert{{.Name}}2PB {{ .Comment}}
+	{{end -}}func Convert{{.Name}}2PB(goModel *{{.Name}}) (pbModel {{.Name}}PB) { 
     pbModel = &{{.Name}}PB{} {{range .Fields}}
     {{if eq .Type "bool" -}}
     pbModel.{{.Name}} = goModel.{{.Name}}
