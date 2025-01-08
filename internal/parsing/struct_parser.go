@@ -34,6 +34,7 @@ type StructField struct {
 	Type        string
 	Comment     string
 	Tag         string
+	IsPlural    bool
 }
 
 // GetTag 获取tag
@@ -146,6 +147,8 @@ func StructParser(src string) (structList []*StructFlat, err error) {
 										Name:       structField.ConvertName,
 										Comment:    structField.Comment,
 									})
+									structField.IsPlural = true
+									structField.ConvertName = util.ToPlural(structField.ConvertName)
 								}
 								structFlat.Fields = append(structFlat.Fields, structField)
 								log.Printf("name=%s type=%s comment=%s tag=%s\n", name.Name, structField.Type, structField.Comment, structField.Tag)

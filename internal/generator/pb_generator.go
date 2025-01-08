@@ -13,9 +13,9 @@ const (
 {{end -}}message {{.Name}} { {{range .PBFieldList}}
     {{if and (ne .Comment "") -}}
     // {{ .Comment}}
-    {{ .Type}} {{.Name}} = {{ .Index }} [json_name = "{{.Tag}}"];
+    {{if .Repeated}}repeated{{- end}}{{ .Type}} {{.Name}} = {{ .Index }} [json_name = "{{.Tag}}"];
     {{- else -}}
-    {{ .Type}} {{.Name}} = {{ .Index }} [json_name = "{{.Tag}}"];
+    {{if .Repeated}}repeated{{- end}}{{ .Type}} {{.Name}} = {{ .Index }} [json_name = "{{.Tag}}"];
     {{- end}}
 {{- end}}
 }

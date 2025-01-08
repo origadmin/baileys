@@ -10,27 +10,28 @@ import (
 
 var (
 	go2pbTypeMapping = map[string]string{
-		"float32":    "float",
-		"float64":    "double",
-		"complex64":  "double",
-		"complex128": "double",
-		"int":        "int32",
-		"int8":       "int32",
-		"int16":      "int32",
-		"int32":      "int32",
-		"int64":      "int64",
-		"uint":       "uint32",
-		"uint8":      "uint32",
-		"uint16":     "uint32",
-		"uint32":     "uint32",
-		"uint64":     "uint64",
-		"bool":       "bool",
-		"string":     "string",
-		"[]byte":     "bytes",
-		"uintptr":    "bytes",
-		"interface":  "bytes",
-		"struct":     "bytes",
-		"time.Time":  "google.protobuf.Timestamp",
+		"float32":       "float",
+		"float64":       "double",
+		"complex64":     "double",
+		"complex128":    "double",
+		"int":           "int32",
+		"int8":          "int32",
+		"int16":         "int32",
+		"int32":         "int32",
+		"int64":         "int64",
+		"uint":          "uint32",
+		"uint8":         "uint32",
+		"uint16":        "uint32",
+		"uint32":        "uint32",
+		"uint64":        "uint64",
+		"bool":          "bool",
+		"string":        "string",
+		"[]byte":        "bytes",
+		"uintptr":       "bytes",
+		"interface":     "bytes",
+		"struct":        "bytes",
+		"time.Time":     "google.protobuf.Timestamp",
+		"time.Duration": "google.protobuf.Duration",
 	}
 )
 
@@ -43,11 +44,12 @@ type PBFlat struct {
 
 // PBField pb field struct
 type PBField struct {
-	Type    string
-	Name    string
-	Tag     string
-	Comment string
-	Index   int
+	Repeated bool
+	Type     string
+	Name     string
+	Tag      string
+	Comment  string
+	Index    int
 }
 
 // GoStruct2PB convert golang struct to Protocol Buffers
@@ -64,11 +66,12 @@ func GoStruct2PB(structList []*parsing.StructFlat) (pbList []*PBFlat) {
 		}
 		for idx, field := range s.Fields {
 			pbField := &PBField{
-				Name:    util.ToLowerSnakeCase(field.Name),
-				Type:    GoType2PB(field.Type),
-				Tag:     trimTagOmit(field.GetJsonTag()),
-				Comment: field.Comment,
-				Index:   idx + 1,
+				Repeated: field.IsPlural,
+				Name:     util.ToLowerSnakeCase(field.Name),
+				Type:     GoType2PB(field.Type),
+				Tag:      trimTagOmit(field.GetJsonTag()),
+				Comment:  field.Comment,
+				Index:    idx + 1,
 			}
 			pbFlat.PBFieldList = append(pbFlat.PBFieldList, pbField)
 		}
